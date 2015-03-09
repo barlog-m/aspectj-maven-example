@@ -1,7 +1,9 @@
 Maven project example with AspectJ
 =====================
 
-Project example with [AspectJ](https://eclipse.org/aspectj/), [Lombok](http://projectlombok.org) and [Maven](http://maven.apache.org).
+Project example with [AspectJ](https://eclipse.org/aspectj/) and [Maven](http://maven.apache.org).
+
+Compile-time weaving with [Lombok](http://projectlombok.org)
 
 ### Run ###
 ```
