@@ -15,8 +15,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<aspectj.version>1.8.5</aspectj.version>
-		<lombok.version>1.16.2</lombok.version>
+		<aspectj.version>1.9.5</aspectj.version>
+		<lombok.version>1.18.2</lombok.version>
 	</properties>
 
 	<dependencies>
@@ -45,65 +45,70 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok-maven-plugin</artifactId>
-				<version>1.16.2.0</version>
 				<executions>
 					<execution>
-						<phase>generate-sources</phase>
+						<!-- We need an execution for compilation do let the test compilation generate the classes in
+						     a different directory. If you need to weave test classes as well a new declaration will
+						     be required to specify a separate path. -->
+						<id>default-compile</id>
+						<phase>compile</phase>
 						<goals>
-							<goal>delombok</goal>
+							<goal>compile</goal>
 						</goals>
+						<configuration>
+							<compilerArguments>
+								<d>${project.build.directory}/unwoven-classes</d>
+							</compilerArguments>
+						</configuration>
 					</execution>
 				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>sun.jdk</groupId>
-						<artifactId>tools</artifactId>
-						<version>${java.version}</version>
-						<scope>system</scope>
-						<systemPath>${java.home}/../lib/tools.jar</systemPath>
-					</dependency>
-				</dependencies>
 			</plugin>
-
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.7</version>
+				<version>1.11</version>
 				<configuration>
 					<complianceLevel>${java.version}</complianceLevel>
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>
-
+					<showWeaveInfo>true</showWeaveInfo>
+					<verbose>true</verbose>
 					<sources>
 						<source>
-							<basedir>${project.build.directory}/generated-sources/delombok</basedir>
+							<!-- I've put the aspect source code in this directory but this is not required.
+							     We need at least one class in the aspect directory to do not let the plugin skip it. -->
+							<basedir>${project.basedir}/src/main/aspect</basedir>
 						</source>
 					</sources>
-
-					<showWeaveInfo>true</showWeaveInfo>
+					<weaveDirectories>
+						<weaveDirectory>${project.build.directory}/unwoven-classes</weaveDirectory>
+					</weaveDirectories>
 				</configuration>
 				<executions>
 					<execution>
+						<phase>process-classes</phase>
 						<goals>
 							<goal>compile</goal>
-							<goal>test-compile</goal>
 						</goals>
 					</execution>
 				</executions>
 				<dependencies>
+					<!-- this is needed to make sure we are using a version that matches the project dependency -->
 					<dependency>
 						<groupId>org.aspectj</groupId>
 						<artifactId>aspectjtools</artifactId>
 						<version>${aspectj.version}</version>
 					</dependency>
+					<!-- This is needed if you are using JDK > 8 -->
+					<dependency>
+						<groupId>com.sun</groupId>
+						<artifactId>tools</artifactId>
+						<version>${java.version}</version>
+						<scope>system</scope>
+						<systemPath>${project.basedir}/pom.xml</systemPath>
+					</dependency>
 				</dependencies>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
